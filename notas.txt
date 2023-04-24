@@ -1,0 +1,140 @@
+
+"""
+
+A = Node('A')
+B = Node('B')
+C = Node('C')
+D = Node('D')
+E = Node('E')
+F = Node('F')
+A.neighbors = [B, C, E]
+B.neighbors = [A, C, D, F]
+C.neighbors = [A, B, D, F]
+D.neighbors = [C, B, E, F]
+E.neighbors = [A, D]
+F.neighbors = [B, C, D]
+all_nodes = [A, B, C, D, E, F]
+
+def find_cliques(potential_clique=[], remaining_nodes=[], skip_nodes=[], depth=0):
+
+    if len(remaining_nodes) == 0 and len(skip_nodes) == 0:
+        print('This is a clique:', potential_clique)
+        return 1
+
+    found_cliques = 0
+    for node in remaining_nodes:
+        new_potential_clique = potential_clique + [node]
+        new_remaining_nodes = [n for n in remaining_nodes if n in node.neighbors]
+        new_skip_list = [n for n in skip_nodes if n in node.neighbors]
+        found_cliques += find_cliques(new_potential_clique, new_remaining_nodes, new_skip_list, depth + 1)
+        remaining_nodes.remove(node)
+        skip_nodes.append(node)
+    return found_cliques
+
+total_cliques = find_cliques(remaining_nodes=all_nodes)
+print('Total cliques found:', total_cliques)
+
+
+
+
+
+
+if len(n_cliques) > 0 and 
+      n_cliques.insert(0, clique_encontrado_actual)
+    else:
+      n_cliques.append(clique_encontrado_actual)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Cliques_totales = []
+Num_cliques = buscar_clique_maximo(Grafo=Grafo, n_cliques=Cliques_totales, nodos_restantes=list(Grafo.keys()))
+Cliques_totales = ordenar_listas_desc(Cliques_totales)
+Clique_maximo=Cliques_totales[0]
+
+print(Clique_maximo)
+print(Num_cliques)
+print(Cliques_totales)
+
+
+
+
+
+
+
+
+
+
+Grafo = cargar_grafo("ejemplo.txt", False)
+for clave, valor in Grafo.items():
+  print(clave, "->", valor)
+  print()
+
+Nodos = list(Grafo.keys())
+print(Nodos)
+
+
+
+
+
+
+
+
+
+
+
+
+def modelo_clique(nombre_archivo, dirigido):
+    Grafo = cargar_grafo(nombre_archivo, dirigido)
+    
+    Num_cliques = buscar_clique_maximo(Grafo=Grafo, n_cliques=Cliques_totales, nodos_restantes=list(Grafo.keys()))
+    Cliques_totales = ordenar_listas_desc(Cliques_totales)
+    Clique_maximo = Cliques_totales[0]
+    print(f"Nodos del clique máximo: {Clique_maximo}")
+    print(f"Cantidad de cliques en el grafo: {Num_cliques}")
+    # for Clique in Cliques_totales: print(Clique)
+
+
+
+
+
+
+
+
+
+
+
+
+n_grafo = dict(sorted(g.items()))
+
+for clave, valor in g.items():
+    print(clave, "->")
+
+
+if linea.startswith('e'):
+                _, nodoA, nodoB = linea.split()
+                if nodoA not in Grafo:
+                    Grafo[nodoA] = []
+                if nodoB not in Grafo:
+                    Grafo[nodoB] = []
+                if not nodoB in Grafo[nodoA]:
+                    Grafo[nodoA].append(nodoB)
+                if not dirigido and not nodoA in Grafo[nodoB]:
+                    Grafo[nodoB].append(nodoA)
+
+"""
