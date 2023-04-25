@@ -1,7 +1,40 @@
 from time import time
+from random import choice
 
-# Fucionalidades
+# Algoritmo Bron–Kerbosch sin pivote
+def BronKerbosch1(Grafo, P, R=None, X=None):
+    P = set(P)
+    R = set() if R is None else R
+    X = set() if X is None else X
+    if not P and not X:
+        yield R
+    while P:
+        v = P.pop()
+        yield from BronKerbosch1(Grafo, P=P.intersection(Grafo[v]), R=R.union([v]), X=X.intersection(Grafo[v]))
+        X.add(v)
+
+
+# Algoritmo Bron–Kerbosch con pivote
+def BronKerbosch2(Grafo, P, R=None, X=None):
+    P = set(P)
+    R = set() if R is None else R
+    X = set() if X is None else X
+    if not P and not X:
+        yield R
+    try:
+        u = choice(list(P.union(X)))
+        S = P.difference(Grafo[u])
+    # if union of P and X is empty
+    except IndexError:
+        S = P
+    for v in S:
+        yield from BronKerbosch2(Grafo, P=P.intersection(Grafo[v]), R=R.union([v]), X=X.intersection(Grafo[v]))
+        P.remove(v)
+        X.add(v)
+
+
 def cargar_grafo(nombre_del_grafo, dirigido):
+    n_aristas = 0
     Grafo = {}
     with open(nombre_del_grafo, 'r') as archivo:
         for linea in archivo:
@@ -13,100 +46,85 @@ def cargar_grafo(nombre_del_grafo, dirigido):
                     Grafo[nodoB] = []
                 if not nodoB in Grafo[nodoA]:
                     Grafo[nodoA].append(nodoB)
+                    n_aristas += 1
                 if not dirigido and not nodoA in Grafo[nodoB]:
                     Grafo[nodoB].append(nodoA)
-    return Grafo
+                    n_aristas += 1
+    # Ordenar el grafo solo favorece para los cliques de grafos dirigidos
+    #tuplas_ordenadas = sorted(Grafo.items(), key=lambda x: int(x[0]))
+    #Grafo_ordenado = {str(clave): valor for clave, valor in tuplas_ordenadas}
+    return Grafo, n_aristas
 
 
 def ordenar_listas_desc(lista_de_listas):
     return sorted(lista_de_listas, key=len, reverse=True)
 
-
-def buscar_clique_maximo(Grafo, n_cliques, clique_encontrado_actual=[], nodos_restantes=[], nodos_omitidos=[]):
-    if len(nodos_restantes) == 0 and len(nodos_omitidos) == 0:
-        n_cliques.append(clique_encontrado_actual)
-        return 1
-    cliques_encontrados = 0
-    for nodo in nodos_restantes:
-        nuevo_posible_clique = clique_encontrado_actual + [nodo]
-        nuevos_nodos_restantes = [
-            N for N in nodos_restantes if N in Grafo[nodo]]
-        nuevos_nodos_omitidos = [N for N in nodos_omitidos if N in Grafo[nodo]]
-        cliques_encontrados += buscar_clique_maximo(
-            Grafo, n_cliques, nuevo_posible_clique, nuevos_nodos_restantes, nuevos_nodos_omitidos)
-        #  RECURSION
-        # print("#", nuevo_posible_clique)
-        nodos_restantes.remove(nodo)
-        nodos_omitidos.append(nodo)
-    return cliques_encontrados
-
-
-def modelo_clique(nombre_archivo, dirigido):
-    Grafo = cargar_grafo(nombre_archivo, dirigido)
-    Cliques_totales = []
+#Sin pivote
+def ejecutar_modelo1(nombre_archivo, dirigido):
+    Grafo, n_aristas = cargar_grafo(nombre_archivo, dirigido)
+    
+    # Ejecución del algoritmo
     tiempo_inicio = time()
-    Num_cliques = buscar_clique_maximo(Grafo=Grafo, n_cliques=Cliques_totales, nodos_restantes=list(Grafo.keys()))
+    cliques = ordenar_listas_desc(list(BronKerbosch1(Grafo, Grafo.keys()))) # P = {Nodos}
     tiempo_final = time()
+    tiempo_en_ejecucion = tiempo_final - tiempo_inicio
+    
+    # Clasificación de cliques encontrados según su tamaño
+    cantidades = {}
+    for clique in cliques:
+        tamano_clique = len(clique)
+        if not tamano_clique in cantidades:
+            cantidades[tamano_clique] = 1
+        else:
+            cantidades[tamano_clique] += 1
+    cantidades = dict(sorted(cantidades.items()))
+    
+    # Mensajes
+    tipo = "dirigido" if dirigido else "No dirigido" 
+    info = f"Tipo de grafo: {tipo}"
+    info += f"Nodos: {len(Grafo)}, Aristas: {n_aristas}\n"
+    info += f"Clique maximo: {cliques[0]}\n"
+    info += f"Cantidad de cliques en el grafo: {len(cliques)}"
+    info += f"Cantidades de cliques: {cantidades}"
+    info += f"Tiempo de ejecucion: {tiempo_en_ejecucion} segundos"
 
-    Cliques_totales = ordenar_listas_desc(Cliques_totales)
-    Clique_maximo = Cliques_totales[0]
-    print(f"Nodos del clique máximo: {Clique_maximo}")
-    print(f"Cantidad de cliques en el grafo: {Num_cliques}")
-    print(f"Tiempo de ejecucion: {tiempo_final - tiempo_inicio}")
+    # Resultados
+    # print(f"Nodos: {len(Grafo)}, Aristas: {n_aristas}")
+    # print(f"Clique maximo: {cliques[0]}")
+    # print(f"Cantidad de cliques en el grafo: {len(cliques)}")
+    # print(f"Cantidades de cliques: {cantidades}")
+    # sprint(f"Tiempo de ejecucion: {tiempo_en_ejecucion} segundos")
 
-
-modelo_clique("Examples/le450_5a.col", True)
-# Cliques_totales = []
-# tiempo_inicio= time()
-# Num_cliques = buscar_clique_maximo(Grafo=chat, n_cliques=Cliques_totales, nodos_restantes=list(chat.keys()))
-# tiempo_final= time()
-
-# Cliques_totales = ordenar_listas_desc(Cliques_totales)
-# Clique_maximo = Cliques_totales[0]
-# print(f"Nodos del clique máximo: {Clique_maximo}")
-# print(f"Cantidad de cliques en el grafo: {Num_cliques}")
-# print(f"Tiempo de ejecucion: {tiempo_final - tiempo_inicio}")
-
-
-# Ejemplos
-
-chat = {
-    0: [1, 3, 4, 5, 6, 7],
-    1: [0, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-    2: [1, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-    3: [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11],
-    4: [0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11],
-    5: [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11],
-    6: [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12],
-    7: [0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12],
-    8: [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12],
-    9: [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12],
-    10: [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12],
-    11: [2, 3, 4, 5, 6, 7, 8, 9, 10, 12],
-    12: [6, 7, 8, 9, 10, 11]
-}
+    return Grafo, n_aristas, cliques, cantidades, tiempo_en_ejecucion, info
 
 
-Grafo_Ejemplo1 = {
-    "A": ["B", "K", "H", "M", "G", "J"],
-    "B": ["A", "C", "E"],
-    "C": ["B", "D", "H"],
-    "D": ["C", "E", "F", "L"],
-    "E": ["B", "D", "F", "L"],
-    "F": ["E", "L", "D"],
-    "J": ["M", "G", "K", "A", "H"],
-    "H": ["C", "A", "K", "G", "M", "J"],
-    "K": ["A", "H", "J", "M", "G"],
-    "M": ["J", "H", "A", "K", "G"],
-    "G": ["M", "K", "H", "J", "A"],
-    "L": ["E", "F", "D"]
-}
-
-Grafo_Ejemplo2 = {
-    "1": ["2", "5"],
-    "2": ["1", "3", "5"],
-    "3": ["2", "4"],
-    "4": ["3", "6", "5"],
-    "5": ["1", "2", "4"],
-    "6": ["4"]
-}
+#Con pivote
+def ejecutar_modelo2(nombre_archivo, dirigido):
+    Grafo, n_aristas = cargar_grafo(nombre_archivo, dirigido)
+    
+    # Ejecución del algoritmo
+    tiempo_inicio = time()
+    cliques = ordenar_listas_desc(list(BronKerbosch2(Grafo, Grafo.keys()))) # P = {Nodos}
+    tiempo_final = time()
+    tiempo_en_ejecucion = tiempo_final - tiempo_inicio
+    
+    # Clasificación de cliques encontrados según su tamaño
+    cantidades = {}
+    for clique in cliques:
+        tamano_clique = len(clique)
+        if not tamano_clique in cantidades:
+            cantidades[tamano_clique] = 1
+        else:
+            cantidades[tamano_clique] += 1
+    cantidades = dict(sorted(cantidades.items()))
+    
+    # DETALLES
+    tipo = "dirigido" if dirigido else "No dirigido" 
+    info = f"Tipo de grafo: {tipo}"
+    info += f"Nodos: {len(Grafo)}, Aristas: {n_aristas}\n"
+    info += f"Clique maximo: {cliques[0]}\n"
+    info += f"Cantidad de cliques en el grafo: {len(cliques)}"
+    info += f"Cantidades de cliques: {cantidades}"
+    info += f"Tiempo de ejecucion: {tiempo_en_ejecucion} segundos"
+    
+    return Grafo, n_aristas, cliques, cantidades, tiempo_en_ejecucion, info
